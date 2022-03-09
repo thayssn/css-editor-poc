@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <script src="//cdn.jsdelivr.net/npm/ramda@0.25.0/dist/ramda.min.js"></script>
+
+    <style>
+    .code{
+        padding: 20px;
+        font-family: 'Courier New', Courier, monospace;
+        outline: none;
+        border: none;
+        margin: 20px;
+    }
+
+    .code:focus-visible{
+        outline: none;
+        border: none;
+    }
+
+    .code--css{
+        background-color: #fbd6ff
+    }
+
+    .editor{
+        display: flex;
+    }
+
+    .code{
+        width: 30%;
+        flex-shrink: 0;
+        min-height: 400px;
+    }
+
+    .preview{
+        padding: 20px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        flex-shrink: 0;
+        flex-grow: 1;
+    }
+
+    .preview div{
+        margin: auto;
+        padding: 10px;
+    }
+
+    .check{
+        display: none;
+        padding: 20px;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .check.correct{
+        display: flex;
+        background-color: #CCFF00;
+    }
+
+    </style>
+
+    <style id="editorStyle"></style>
+</head>
+
+<body>
+
+<section class="editor">
+<textarea class="code code--css"></textarea>
+<div class="preview"></div>
+</section>
+<div class="check">Correto!</div>
+
+<script>
+    async function start(){
+
+        const code = document.querySelector('.code');
+        const preview = document.querySelector('.preview');
+        const sanitize = (str) => str.replace(/[ \n\r\t]/ig,"");
+        const styleTag = document.querySelector('#editorStyle');
+        const fetchBoxes = await fetch('/boxes.json').then(response => response.json())
+        const boxes = fetchBoxes.map(setupBoxes);
+        const result = document.querySelector('.check');
+
+        function updateResult(checked){
+            result.classList.toggle('correct', checked);
+        }
+
+        function setupBoxes(box, index) {
+           const className = `box-${index+1}`;
+           
+            preview.insertAdjacentHTML('beforeend',
+            `<div class="${className}" data-box-id="${box.id}">${box.html}</div>`
+            );
+
+            code.value += `.${className} {${box.cssText}}\n\n`;
+
+            return {
+                ...box,
+                className,
+                selector: `.${className}`
+            }
+        }
+
+        function verifyCSS(box,index){
+            console.log(box)
+            return Object.entries(box.answer).every(([cssProperty, value]) => {
+                const boxElement = document.querySelector(box.selector);
+                const computedValue = getComputedStyle(boxElement)[cssProperty]
+                console.log(computedValue)
+                return computedValue === value
+            })
+        }
+
+        function debounce(fn, timeout = 1000) {
+            let timer = null;
+
+            return (...args) => {
+                clearTimeout(timer);
+                timer = setTimeout(() => { fn.apply(this, args) }, timeout);
+            }
+        }
+
+        function updatePreviewStyle(){
+            const css = code.value.trim();
+            styleTag.textContent = sanitize(css);
+            console.log(boxes)
+            const passes = boxes.every(verifyCSS);
+            console.log(passes)
+            updateResult(passes)
+        }
+
+        code.addEventListener('input', debounce(() => {
+            updatePreviewStyle()
+        }), 2000)
+
+        code.addEventListener('keydown', e => {
+            if ( e.key === 'Tab' && !e.shiftKey ) {
+                document.execCommand('insertText', false, "  ");
+                e.preventDefault();
+                return false;
+            }
+        });
+
+        updatePreviewStyle()
+    }
+    start()
+    </script>
+</body>
+</html>

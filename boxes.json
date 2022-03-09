@@ -1,0 +1,27 @@
+[
+    {
+        "id": "1eb01ab2ca4",
+        "html": "Color Me Red",
+        "cssText": "\n  color: orange;\n",
+        "answer": {
+            "color": "rgb(255, 0, 0)"
+        }
+    },
+    {
+        "id": "00b312bae2c",
+        "html": "Color Me Blue and My Background Green",
+        "cssText": "\n  color: black;\n  background-color: #03209a\n",
+        "answer": {
+            "color": "rgb(0, 0, 255)",
+            "background-color": "rgb(204, 255, 0)"
+        }
+    },
+    {
+        "id": "d9300c24a0d",
+        "html": "Color Me Yellow",
+        "cssText": "\n  color: blue;\n",
+        "answer": {
+            "color": "rgb(255, 255, 0)"
+        }
+    }
+]
